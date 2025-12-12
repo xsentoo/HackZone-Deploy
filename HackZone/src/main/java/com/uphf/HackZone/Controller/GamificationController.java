@@ -1,10 +1,10 @@
 package com.uphf.HackZone.Controller;
 
 import com.uphf.HackZone.Entity.AttackEntity;
-import com.uphf.HackZone.Entity.SolveEntity;
+import com.uphf.HackZone.Entity.SolveEntity; // Utilisé au lieu de SolvesEntity
 import com.uphf.HackZone.Entity.UserEntity;
 import com.uphf.HackZone.Repository.AttackRepository;
-import com.uphf.HackZone.Repository.SolveRepository;
+import com.uphf.HackZone.Repository.SolveRepository; // Utilisé au lieu de SolvesRepository
 import com.uphf.HackZone.Repository.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -32,22 +32,27 @@ public class GamificationController {
 
         if (userOpt.isEmpty()) return "redirect:/Auth/login";
         UserEntity user = userOpt.get();
+        // Ligne de syntaxe invalide "SolvesEntity.java" SUPPRIMÉE ici.
 
         Optional<AttackEntity> attackOpt = attackRepository.findByFlag(flagInput);
 
         if (attackOpt.isPresent()) {
             AttackEntity attack = attackOpt.get();
 
+            // Vérifie si le défi a déjà été résolu
             if (solveRepository.existsByUserIdAndAttId(user.getUserId(), attack.getAttId())) {
                 return "redirect:/Home?error=Déja validé ! Petit malin...";
             }
 
+            // Crée et sauvegarde l'entité de résolution
             SolveEntity solveEntity = new SolveEntity(user.getUserId(), attack.getAttId());
             solveRepository.save(solveEntity);
 
+            // Met à jour les points de l'utilisateur
             int nouveauxPoints = user.getPoint() + attack.getPoints();
             user.setPoint(nouveauxPoints);
 
+            // Mise à jour du niveau/badge
             updateLevel(user);
 
             userRepository.save(user);

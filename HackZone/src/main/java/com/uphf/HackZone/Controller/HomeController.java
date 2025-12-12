@@ -2,6 +2,7 @@ package com.uphf.HackZone.Controller;
 
 import com.uphf.HackZone.Entity.UserEntity;
 import com.uphf.HackZone.Repository.UserRepository;
+import com.uphf.HackZone.Service.ChallengeService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -15,9 +16,12 @@ import java.util.Optional;
 public class HomeController {
 
     private final UserRepository userRepository;
+    private final ChallengeService challengeService; // Déclaration du service
 
-    public HomeController(UserRepository userRepository) {
+    // Constructeur mis à jour pour inclure ChallengeService
+    public HomeController(UserRepository userRepository, ChallengeService challengeService) {
         this.userRepository = userRepository;
+        this.challengeService = challengeService; // Initialisation
     }
 
     @GetMapping("/Home")
@@ -37,6 +41,9 @@ public class HomeController {
             // --------------------------------------------------
 
             model.addAttribute("user", user);
+
+            // AJOUT : Récupérer et envoyer tous les challenges à la vue
+            model.addAttribute("allAttacks", challengeService.getAllChallenges());
 
             // Calcul pour la barre de progression
             int score = user.getPoint();

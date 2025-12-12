@@ -1,51 +1,65 @@
 version: '3.8'
-
 services:
-  # --- 1. Le MySQL ---
+  # --- 1. Le MySQL (MODIFIÉ pour le Healthcheck) ---
   mysqldb:
     image: mysql:8.0
     container_name: hackzone-mysql-docker
     ports:
-      - "3307:3306"
+      - "3308:3306"  # Port exposé pour le développement local
     environment:
       MYSQL_ROOT_PASSWORD: root
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - mysql_data_docker:/var/lib/mysql
     networks:
-      - hackzone-net  # <--- On l'ajoute au réseau
+      - hackzone-net
 
-  # --- 2. HackZone ---
+    # AJOUT CRITIQUE : Vérifie si MySQL est prêt à accepter des connexions
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=root"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s # Laisse du temps pour l'initialisation de la BD
+
+  # --- 2. HackZone (MODIFIÉ pour attendre la BD) ---
   hackzone:
     build: ./HackZone
     container_name: hackzone-app
     ports:
       - "8080:8080"
-    depends_on:
-      - mysqldb
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/HackZone?allowPublicKeyRetrieval=true&useSSL=false
+      # NOTE: Ces variables d'environnement prennent le dessus sur application.properties dans Docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/HackZone?allowPublicKeyRetrieval=true&useSSL=false&useUnicode=true&characterEncoding=UTF-8
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
     networks:
-      - hackzone-net  # <--- On l'ajoute au réseau
+      - hackzone-net
 
-  # --- 3. TargetApp ---
+    # MODIFICATION CRITIQUE : L'application attend que le healthcheck de MySQL soit OK
+    depends_on:
+      mysqldb:
+        condition: service_healthy
+
+  # --- 3. TargetApp (MODIFIÉ pour attendre la BD) ---
   targetapp:
     build: ./TargetApp
     container_name: target-app
     ports:
       - "8081:8081"
-    depends_on:
-      - mysqldb
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/TargetDB?allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/TargetDB?allowPublicKeyRetrieval=true&useSSL=false&useUnicode=true&characterEncoding=UTF-8
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
     networks:
-      - hackzone-net  # <--- On l'ajoute au réseau
+      - hackzone-net
 
-  # --- 4. PhpMyAdmin ---
+    # MODIFICATION CRITIQUE : Attendre que la BD soit prête
+    depends_on:
+      mysqldb:
+        condition: service_healthy
+
+  # --- 4. PhpMyAdmin (Utilisé pour l'inspection de la BD) ---
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: hackzone-pma
@@ -55,15 +69,29 @@ services:
       PMA_HOST: mysqldb
       MYSQL_ROOT_PASSWORD: root
     depends_on:
-      - mysqldb
+      mysqldb:
+        condition: service_healthy # Attendre la BD
     networks:
-      - hackzone-net  # <--- On l'ajoute au réseau
+      - hackzone-net
 
-# Définition des volumes
+  # --- 5. NOUVEAU SERVICE : Serveur SSH Cible (Utilisation de l'image fiable) ---
+  ssh-target:
+    image: rastasheep/ubuntu-sshd
+    container_name: ssh-target
+    restart: always
+    ports:
+      # Port exposé pour l'attaque (localhost:2222)
+      - "2222:22"
+    environment:
+      # L'image rastasheep utilise SSH_USERS pour le mot de passe (root:password123)
+      - SSH_USERS=root:password123
+    networks:
+      - hackzone-net
+
+
+# Définition des volumes et réseaux
 volumes:
   mysql_data_docker:
-
-# --- NOUVEAU : Définition du réseau ---
 networks:
   hackzone-net:
     driver: bridge

@@ -14,7 +14,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap; // Import ajouté !
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,10 +24,30 @@ public class VulnerableController {
     @PersistenceContext
     private EntityManager entityManager;
 
-    // --- PAGE DE LOGIN (Niveau 1) ---
+    // --- PAGE D'ACCUEIL : redirige vers le formulaire de login ---
+    // (Utilisé lorsque l'on accède à http://localhost:8081/)
     @GetMapping("/")
     public String loginPage(){
         return "login";
+    }
+
+    // --- NOUVEAU MAPPING : Gère la requête GET /login (SQL Nv 1 & Force Brute Nv 1) ---
+    // Corrige le 404/405 pour l'accès direct au formulaire de login.
+    @GetMapping("/login")
+    public String showLoginForm() {
+        return "login";
+    }
+
+    // --- NOUVEAU MAPPING : Affiche la page SSH Challenge (Force Brute Nv 3) ---
+    @GetMapping("/ssh-challenge")
+    public String showSSHChallenge() {
+        return "ssh-challenge"; // Renvoie au template ssh-challenge.html
+    }
+
+    // --- NOUVEAU MAPPING : Affiche la page VPN Challenge (Analyse Réseau Nv 5) ---
+    @GetMapping("/vpn-challenge")
+    public String showVpnChallenge() {
+        return "vpn-challenge"; // Renvoie au template vpn-challenge.html
     }
 
     // --- TRAITEMENT LOGIN VULNÉRABLE (Niveau 1) ---

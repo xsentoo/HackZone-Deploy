@@ -1,239 +1,307 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sélection de Mission | HackZone</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sélection de Mission | HackZone</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-  <style>
-    /* --- VARIABLES (Mêmes que Home.html) --- */
-    :root {
-      --bg-dark: #0B0F19;
-      --bg-panel: #151A29;
+    <style>
+        /* --- VARIABLES (Mêmes que Home.html) --- */
+        :root {
+            --bg-dark: #0B0F19;
+            --bg-panel: #151A29;
 
-      --primary: #6366F1;
-      --primary-glow: rgba(99, 102, 241, 0.3);
+            --primary: #6366F1;
+            --primary-glow: rgba(99, 102, 241, 0.3);
 
-      --success: #10B981;
-      --warning: #F59E0B;
-      --danger: #EF4444;
-      --muted: #94A3B8;
-      --text: #F8FAFC;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --muted: #94A3B8;
+            --text: #F8FAFC;
 
-      --border: rgba(255, 255, 255, 0.06);
-      --radius: 16px;
-    }
+            --border: rgba(255, 255, 255, 0.06);
+            --radius: 16px;
+            --accent-color: #005000; /* VERT TRÈS FONCÉ pour les accolades */
+        }
 
-    /* --- BASE --- */
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: var(--bg-dark);
-      background-image: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.1), transparent 40%);
-      color: var(--text);
-      margin: 0; padding: 0;
-      min-height: 100vh;
-    }
+        /* --- BASE --- */
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.1), transparent 40%);
+            color: var(--text);
+            margin: 0; padding: 0;
+            min-height: 100vh;
+        }
 
-    a { text-decoration: none; color: inherit; transition: 0.2s; }
+        a { text-decoration: none; color: inherit; transition: 0.2s; }
 
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
 
-    /* --- HEADER --- */
-    .page-header {
-      margin-bottom: 50px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+        /* --- HEADER --- */
+        .page-header {
+            margin-bottom: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    .back-btn {
-      display: flex; align-items: center; gap: 10px;
-      color: var(--muted);
-      font-weight: 600;
-      font-size: 0.9rem;
-      padding: 10px 20px;
-      border-radius: 12px;
-      border: 1px solid transparent;
-      background: rgba(255,255,255,0.03);
-    }
-    .back-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+        .back-btn {
+            display: flex; align-items: center; gap: 10px;
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            background: rgba(255,255,255,0.03);
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
 
-    .module-title {
-      text-align: right;
-    }
-    .module-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-    .module-name { font-size: 2rem; font-weight: 800; color: var(--primary); letter-spacing: -1px; }
+        .module-title {
+            text-align: right;
+        }
+        .module-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .module-name {
+            font-size: 2rem; font-weight: 800; color: var(--primary); letter-spacing: -1px;
+            display: flex; align-items: center; justify-content: flex-end; /* Pour aligner le titre à droite */
+        }
+        /* NOUVEAU STYLE POUR L'EFFET D'ÉCRITURE */
+        .typing-effect-page {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+        }
+        .typing-effect-page .brace {
+            color: var(--accent-color) !important;
+        }
 
-    /* --- MISSION LIST --- */
-    .mission-list {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
 
-    .mission-card {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 25px 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
+        /* --- MISSION LIST --- */
+        .mission-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
-    /* Effet Hover */
-    .mission-card:hover {
-      transform: translateY(-3px);
-      border-color: var(--primary);
-      box-shadow: 0 10px 30px -10px var(--primary-glow);
-    }
+        .mission-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
 
-    .mission-left { display: flex; align-items: center; gap: 20px; }
+        /* Effet Hover */
+        .mission-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px -10px var(--primary-glow);
+        }
 
-    .mission-icon {
-      width: 50px; height: 50px;
-      background: rgba(255,255,255,0.03);
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem;
-      color: var(--muted);
-      transition: 0.3s;
-    }
-    .mission-card:hover .mission-icon { color: var(--primary); background: rgba(99, 102, 241, 0.1); }
+        .mission-left { display: flex; align-items: center; gap: 20px; }
 
-    .mission-info h3 { margin: 0 0 8px 0; font-size: 1.2rem; font-weight: 600; }
+        .mission-icon {
+            width: 50px; height: 50px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            color: var(--muted);
+            transition: 0.3s;
+        }
+        .mission-card:hover .mission-icon { color: var(--primary); background: rgba(99, 102, 241, 0.1); }
 
-    .badges { display: flex; gap: 10px; align-items: center; }
+        .mission-info h3 { margin: 0 0 8px 0; font-size: 1.2rem; font-weight: 600; }
 
-    .pill { font-size: 0.75rem; padding: 4px 12px; border-radius: 20px; font-weight: 700; text-transform: uppercase; }
-    .pill-green { background: rgba(16, 185, 129, 0.15); color: var(--success); }
-    .pill-orange { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
-    .pill-red { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
-    .pill-lock { background: rgba(255, 255, 255, 0.05); color: var(--muted); }
+        .badges { display: flex; gap: 10px; align-items: center; }
 
-    .points {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
-      color: var(--muted);
-      display: flex; align-items: center; gap: 5px;
-    }
-    .points i { color: var(--warning); }
+        .pill { font-size: 0.75rem; padding: 4px 12px; border-radius: 20px; font-weight: 700; text-transform: uppercase; }
+        .pill-green { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .pill-orange { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .pill-red { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .pill-lock { background: rgba(255, 255, 255, 0.05); color: var(--muted); }
 
-    .btn-start {
-      background: var(--primary);
-      color: white;
-      padding: 12px 24px;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 0.9rem;
-      letter-spacing: 0.5px;
-      transition: 0.2s;
-      border: 1px solid transparent;
-    }
-    .btn-start:hover {
-      background: #4F46E5;
-      box-shadow: 0 0 15px var(--primary-glow);
-      transform: scale(1.02);
-    }
+        .points {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--muted);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .points i { color: var(--warning); }
 
-    /* Carte Verrouillée (Bonus) */
-    .mission-card.locked {
-      opacity: 0.6;
-      cursor: not-allowed;
-      border-style: dashed;
-    }
-    .mission-card.locked:hover {
-      transform: none;
-      border-color: var(--border);
-      box-shadow: none;
-    }
+        .btn-start {
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+        .btn-start:hover {
+            background: #4F46E5;
+            box-shadow: 0 0 15px var(--primary-glow);
+            transform: scale(1.02);
+        }
 
-    /* Responsive */
-    @media (max-width: 700px) {
-      .mission-card { flex-direction: column; text-align: center; gap: 20px; }
-      .mission-left { flex-direction: column; }
-      .page-header { flex-direction: column-reverse; gap: 20px; align-items: flex-start; }
-      .module-title { text-align: left; }
-    }
-  </style>
+        /* Carte Verrouillée (Bonus) */
+        .mission-card.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+        .mission-card.locked:hover {
+            transform: none;
+            border-color: var(--border);
+            box-shadow: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            .mission-card { flex-direction: column; text-align: center; gap: 20px; }
+            .mission-left { flex-direction: column; }
+            .page-header { flex-direction: column-reverse; gap: 20px; align-items: flex-start; }
+            .module-title { text-align: left; }
+            .module-name { justify-content: flex-start; }
+        }
+    </style>
 </head>
 <body>
 
 <div class="container">
 
-  <div class="page-header">
-    <a href="/Home" class="back-btn">
-      <i class="fas fa-arrow-left"></i> Retour Dashboard
-    </a>
-    <div class="module-title">
-      <div class="module-label">Module d'entraînement</div>
-      <div class="module-name">
-        <i class="fas fa-layer-group"></i> <span th:text="${categoryName}">CATEGORIE</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="mission-list">
-
-    <div th:each="challenge, iterStat : ${challenges}" class="mission-card">
-      <div class="mission-left">
-        <div class="mission-icon">
-          <span th:text="'0' + ${iterStat.count}">01</span>
+    <div class="page-header">
+        <a href="/Home" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Retour Dashboard
+        </a>
+        <div class="module-title">
+            <div class="module-label">Module d'entraînement</div>
+            <div class="module-name" id="module-name-container">
+                <i class="fas fa-layer-group"></i>
+                <span id="category-title-span"
+                      class="typing-effect-page"
+                      th:data-category-name="${categoryName}"
+                      th:text="${categoryName}">CATEGORIE</span>
+            </div>
         </div>
+    </div>
 
-        <div class="mission-info">
-          <h3 th:text="${challenge.title}">Titre de la mission</h3>
+    <div class="mission-list">
 
-          <div class="badges">
+        <div th:each="challenge, iterStat : ${challenges}" class="mission-card">
+            <div class="mission-left">
+                <div class="mission-icon">
+                    <span th:text="'0' + ${iterStat.count}">01</span>
+                </div>
+
+                <div class="mission-info">
+                    <h3 th:text="${challenge.title}">Titre de la mission</h3>
+
+                    <div class="badges">
                         <span class="pill"
                               th:classappend="${challenge.difficulty == 'deb'} ? 'pill-green' : (${challenge.difficulty == 'int'} ? 'pill-orange' : 'pill-red')"
                               th:text="${challenge.difficulty == 'deb'} ? 'Débutant' : (${challenge.difficulty == 'int'} ? 'Intermédiaire' : 'Avancé')">
                             Diff
                         </span>
 
-            <span class="points">
+                        <span class="points">
                             <i class="fas fa-bolt"></i> <span th:text="${challenge.points} + ' XP'"></span>
                         </span>
-          </div>
-        </div>
-      </div>
+                    </div>
+                </div>
+            </div>
 
-      <a th:href="@{'/mission/' + ${challenge.attId}}" class="btn-start">
-        LANCER <i class="fas fa-play" style="font-size: 0.8rem; margin-left: 5px;"></i>
-      </a>
+            <a th:href="@{/mission/{id}(id=${challenge.attId})}" class="btn-start">
+                LANCER <i class="fas fa-play" style="font-size: 0.8rem; margin-left: 5px;"></i>
+            </a>
+        </div>
+
+        <div class="mission-card locked">
+            <div class="mission-left">
+                <div class="mission-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="mission-info">
+                    <h3>Opération : Black Out</h3>
+                    <div class="badges">
+                        <span class="pill pill-lock">Classifié</span>
+                        <span class="points"><i class="fas fa-bolt" style="color:#555;"></i> ??? XP</span>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-start" style="background: #333; color: #777; cursor: not-allowed;">VERROUILLÉ</button>
+        </div>
+
     </div>
-
-    <div class="mission-card locked">
-      <div class="mission-left">
-        <div class="mission-icon">
-          <i class="fas fa-lock"></i>
-        </div>
-        <div class="mission-info">
-          <h3>Opération : Black Out</h3>
-          <div class="badges">
-            <span class="pill pill-lock">Classifié</span>
-            <span class="points"><i class="fas fa-bolt" style="color:#555;"></i> ??? XP</span>
-          </div>
-        </div>
-      </div>
-      <button class="btn-start" style="background: #333; color: #777; cursor: not-allowed;">VERROUILLÉ</button>
-    </div>
-
-  </div>
 </div>
 
+<script>
+    // --- Paramètres pour l'animation ---
+    const PAGE_TYPING_DELAY_MS = 200; // 200ms par caractère (2 secondes pour 10 caractères)
+    const ACCENTS_COLOR = "#005000"; // Vert très très foncé
+
+    // Fonction d'attente asynchrone
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    /**
+     * Anime le texte avec l'effet d'écriture et les accolades colorées.
+     */
+    async function typeEffectCategoryTitle() {
+        const typingSpan = document.getElementById('category-title-span');
+
+        if (!typingSpan) return;
+
+        // Récupérer le nom de la catégorie (initialement affiché par Thymeleaf)
+        const categoryName = typingSpan.getAttribute('data-category-name');
+
+        if (!categoryName) return;
+
+        let finalOutput = '';
+
+        // Appliquer les styles pour l'effet
+        typingSpan.style.fontFamily = "'JetBrains Mono', monospace";
+        typingSpan.style.fontWeight = '700';
+
+        // Masquer le texte initial avant l'animation
+        typingSpan.style.visibility = 'hidden';
+        typingSpan.style.visibility = 'visible'; // Afficher le conteneur vide
+
+        // 1. Écrire l'accolade ouvrante '{'
+        typingSpan.innerHTML = `<span class="brace">{</span>`;
+        await sleep(PAGE_TYPING_DELAY_MS);
+
+        // 2. Écrire le texte lettre par lettre
+        for (const char of categoryName) {
+            finalOutput += char;
+            typingSpan.innerHTML = `<span class="brace">{</span>` + finalOutput;
+            await sleep(PAGE_TYPING_DELAY_MS);
+        }
+
+        // 3. Écrire l'accolade fermante '}'
+        typingSpan.innerHTML = `<span class="brace">{</span>` + categoryName + `<span class="brace">}</span>`;
+        await sleep(PAGE_TYPING_DELAY_MS);
+    }
+
+    // Démarrer l'animation lorsque la page est chargée
+    document.addEventListener('DOMContentLoaded', typeEffectCategoryTitle);
+</script>
 </body>
 </html>

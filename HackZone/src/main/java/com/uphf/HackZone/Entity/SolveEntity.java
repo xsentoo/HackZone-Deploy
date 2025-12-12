@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Solves")
-public class SolveEntity {
+public class SolveEntity { // <-- CORRIGÉ : Le nom de la classe est maintenant 'SolveEntity'
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int solveid;
@@ -18,11 +18,10 @@ public class SolveEntity {
         this.userId = userId;
         this.attId = attId;
         this.solved_at = LocalDateTime.now();
-
     }
+    // ... (Le reste des méthodes Getters/Setters reste inchangé) ...
 
     public SolveEntity() {
-
     }
 
     public int getSolveid() {
