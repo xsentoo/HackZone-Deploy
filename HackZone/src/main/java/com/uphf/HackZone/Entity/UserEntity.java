@@ -22,7 +22,6 @@ public class UserEntity {
 
     @Column(name = "level") // Optionnel car pas de majuscule, mais plus sûr
     private String level;
-
     @Column(name = "userBadge") // AJOUTÉ
     private String userBadge;
 

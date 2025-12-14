@@ -5,7 +5,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession; // Import essentiel
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,16 +28,40 @@ public class VulnerableController {
     @PersistenceContext
     private EntityManager entityManager;
 
-    // --- PAGE D'ACCUEIL (LOGIN) ---
+    // --- METHODE UTILITAIRE POUR L'URL JDBC (Fix Docker/Localhost) ---
+    private String getJdbcUrl() {
+        String dbHost = System.getenv("DB_HOST");
+        String dbPort = System.getenv("DB_PORT");
+
+        if (dbHost == null || dbHost.isEmpty()) dbHost = "localhost";
+        if (dbPort == null || dbPort.isEmpty()) dbPort = "3308";
+
+        return "jdbc:mysql://" + dbHost + ":" + dbPort + "/TargetDB?allowPublicKeyRetrieval=true&useSSL=false&useUnicode=true&characterEncoding=UTF-8";
+    }
+
+    // --- PAGE D'ACCUEIL ---
     @GetMapping("/")
     public String loginPage(){
         return "login";
     }
 
+    @GetMapping("/login")
+    public String showLoginForm() {
+        return "login";
+    }
+
+    @GetMapping("/ssh-challenge")
+    public String showSSHChallenge() { return "ssh-challenge"; }
+
+    @GetMapping("/vpn-challenge")
+    public String showVpnChallenge() { return "vpn-challenge"; }
+
     // --- TRAITEMENT LOGIN (SQL INJECTION NIVEAU 1) ---
     @PostMapping("/login")
     public String login(@RequestParam String username, @RequestParam String password, Model model){
+        // Faille : Concaténation directe
         String sql = "SELECT * FROM Users WHERE username = '" + username + "' and password = '" + password + "'";
+        System.out.println("Requete login exécutée : " + sql);
 
         try {
             Query query = entityManager.createNativeQuery(sql);
@@ -66,9 +90,13 @@ public class VulnerableController {
     public String shopPage(@RequestParam(required = false, defaultValue = "Vêtements") String category, Model model) {
         List<Map<String, String>> products = new ArrayList<>();
         String error = null;
-        String url = "jdbc:mysql://mysqldb:3306/TargetDB?allowPublicKeyRetrieval=true&useSSL=false";
 
-        try (Connection con = DriverManager.getConnection(url, "root", "root");
+        // Utilisation de la méthode corrigée pour l'URL
+        String url = getJdbcUrl();
+        String user = "root";
+        String password = "root";
+
+        try (Connection con = DriverManager.getConnection(url, user, password);
              Statement stmt = con.createStatement()) {
 
             String sql = "SELECT name, price FROM Products WHERE category = '" + category + "'";
@@ -83,6 +111,7 @@ public class VulnerableController {
             }
         } catch (Exception e) {
             error = "Erreur SQL : " + e.getMessage();
+            e.printStackTrace();
         }
         model.addAttribute("products", products);
         model.addAttribute("error", error);
@@ -95,18 +124,20 @@ public class VulnerableController {
 
         // 1. LE FLAG (Dans le cookie)
         Cookie flagCookie = new Cookie("flag", "FLAG{XSS_MASTER_ALERT}");
-        flagCookie.setHttpOnly(false); // Accessible via JS
+        flagCookie.setHttpOnly(false); // Accessible via JS (C'est le but du XSS)
         flagCookie.setPath("/");
         flagCookie.setMaxAge(3600);
         response.addCookie(flagCookie);
 
         String sessionId = session.getId();
         List<String> comments = new ArrayList<>();
-        String url = "jdbc:mysql://mysqldb:3306/TargetDB?allowPublicKeyRetrieval=true&useSSL=false";
+
+        // Utilisation de la méthode corrigée pour l'URL (Compatible Docker)
+        String url = getJdbcUrl();
 
         try (Connection con = DriverManager.getConnection(url, "root", "root")) {
 
-            // ÉTAPE A : On récupère les messages DE CET ÉTUDIANT
+            // ÉTAPE A : On récupère les messages DE CET ÉTUDIANT UNIQUEMENT
             try (PreparedStatement pstmtSelect = con.prepareStatement("SELECT content FROM Comments WHERE session_id = ? ORDER BY id DESC")) {
                 pstmtSelect.setString(1, sessionId);
                 ResultSet rs = pstmtSelect.executeQuery();
@@ -115,9 +146,9 @@ public class VulnerableController {
                 }
             }
 
-            // ÉTAPE B : AUTO-NETTOYAGE IMMÉDIAT
-            // On supprime les messages juste après les avoir récupérés.
-            // La page va s'afficher avec l'attaque, mais si on rafraîchit, ce sera propre.
+            // ÉTAPE B : AUTO-NETTOYAGE IMMÉDIAT (ACTIVÉ)
+            // On supprime les messages de la base juste après l'affichage.
+            // L'attaque s'exécutera dans le navigateur, mais au prochain refresh, tout sera propre.
             try (PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM Comments WHERE session_id = ?")) {
                 pstmtDelete.setString(1, sessionId);
                 pstmtDelete.executeUpdate();
@@ -133,7 +164,9 @@ public class VulnerableController {
 
     @PostMapping("/guestbook")
     public String postComment(@RequestParam String content, HttpSession session) {
-        String url = "jdbc:mysql://mysqldb:3306/TargetDB?allowPublicKeyRetrieval=true&useSSL=false";
+
+        // Utilisation de la méthode corrigée pour l'URL
+        String url = getJdbcUrl();
         String sessionId = session.getId();
 
         try (Connection con = DriverManager.getConnection(url, "root", "root");

@@ -1,278 +1,295 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mission Control | HackZone</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Active | HackZone</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0B0F19;
+            --bg-panel: #151A29;
+            --primary: #6366F1;
+            --success: #10B981;
+            --danger: #EF4444;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --border: rgba(255, 255, 255, 0.06);
+            --radius: 16px;
+        }
 
-  <style>
-    /* --- VARIABLES --- */
-    :root {
-      --bg-dark: #0B0F19;
-      --bg-panel: #151A29;
-      --bg-input: #080b12;
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+            margin: 0;
+            box-sizing: border-box;
+        }
 
-      --primary: #6366F1;
-      --primary-hover: #4F46E5;
-      --primary-glow: rgba(99, 102, 241, 0.4);
+        /* --- WRAPPER GLOBAL --- */
+        .page-wrapper {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: flex-start; /* Aligné à gauche */
+            animation: fadeIn 0.5s ease-out;
+        }
 
-      --success: #10B981;
-      --warning: #F59E0B;
-      --text-main: #F8FAFC;
-      --text-muted: #94A3B8;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-      --border: rgba(255, 255, 255, 0.08);
-      --radius: 16px;
-    }
+        /* --- BOUTON RETOUR --- */
+        .btn-back {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-back:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--text-main);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
 
-    /* --- BASE --- */
-    body {
-      background-color: var(--bg-dark);
-      background-image: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.08), transparent 60%);
-      color: var(--text-main);
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      margin: 0; padding: 20px;
-      display: flex; justify-content: center; align-items: center;
-      min-height: 100vh;
-      box-sizing: border-box;
-    }
+        .mission-container {
+            width: 100%;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            text-align: left;
+        }
 
-    * { box-sizing: border-box; }
+        .mission-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px;
+        }
 
-    /* --- MODAL CONTAINER --- */
-    .mission-modal {
-      width: 100%;
-      max-width: 650px; /* Plus compact pour le focus */
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-      position: relative;
-      overflow: hidden;
-      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+        .mission-title h1 { font-size: 1.8rem; font-weight: 700; margin: 0; }
 
-    /* Ligne colorée au top */
-    .mission-modal::before {
-      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-      background: linear-gradient(90deg, var(--primary), #A855F7);
-    }
+        .mission-difficulty {
+            padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+            text-transform: uppercase; margin-top: 5px; display: inline-block;
+        }
+        .diff-deb { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .diff-int { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+        .diff-avan { background: rgba(245, 158, 11, 0.1); color: #F59E0B; }
 
-    /* --- HEADER --- */
-    .modal-header {
-      padding: 25px 30px;
-      border-bottom: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: flex-start;
-      background: rgba(255, 255, 255, 0.01);
-    }
+        .mission-body { margin-bottom: 30px; }
+        .mission-body h2 {
+            font-size: 1.2rem; color: var(--primary); margin-bottom: 15px;
+            border-left: 3px solid var(--primary); padding-left: 10px;
+        }
+        .mission-body p { color: var(--text-muted); line-height: 1.6; margin-bottom: 15px; font-size: 0.95rem; }
 
-    .mission-meta { display: flex; flex-direction: column; gap: 6px; flex: 1; padding-right: 20px; }
+        .btn-launch {
+            display: inline-flex; align-items: center; gap: 10px;
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white; padding: 12px 25px;
+            border-radius: 8px; font-weight: 700; text-transform: uppercase;
+            font-size: 0.9rem; letter-spacing: 0.5px;
+            text-decoration: none; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .btn-launch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+        .btn-launch i { font-size: 1rem; }
 
-    .status-badge {
-      font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-      color: var(--warning); display: flex; align-items: center; gap: 8px;
-    }
-    .status-dot { width: 6px; height: 6px; background: var(--warning); border-radius: 50%; box-shadow: 0 0 8px var(--warning); animation: pulse 2s infinite; }
+        .flag-validation {
+            background: #080b12; padding: 25px; border-radius: var(--radius); border: 1px solid var(--border);
+        }
+        .flag-validation h3 { font-size: 1.1rem; margin-bottom: 15px; color: var(--text-main); }
+        .flag-form { display: flex; gap: 10px; }
 
-    h1 { margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--text-main); line-height: 1.3; }
+        .flag-input {
+            flex: 1; padding: 12px; border-radius: 8px;
+            border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+        }
+        .flag-input:focus { outline: none; border-color: var(--primary); }
 
-    .close-btn {
-      flex-shrink: 0;
-      color: var(--text-muted); font-size: 1.2rem; transition: 0.2s;
-      background: rgba(255,255,255,0.05); width: 36px; height: 36px;
-      display: flex; align-items: center; justify-content: center; border-radius: 50%;
-      border: 1px solid transparent;
-      cursor: pointer;
-      text-decoration: none;
-    }
-    .close-btn:hover { background: rgba(255, 255, 255, 0.1); color: white; border-color: rgba(255,255,255,0.1); }
+        .btn-validate {
+            background: var(--primary); color: white; border: none; padding: 12px 20px;
+            border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .btn-validate:hover { background: #4F46E5; }
+        .btn-validate:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* --- CONTENT --- */
-    .modal-content { padding: 30px; }
-
-    /* Briefing */
-    .briefing-box {
-      background: rgba(255, 255, 255, 0.03);
-      border-left: 3px solid var(--primary);
-      padding: 20px;
-      border-radius: 0 8px 8px 0;
-      margin-bottom: 35px;
-    }
-    .briefing-title { display: flex; align-items: center; gap: 10px; color: var(--text-main); font-weight: 700; margin-bottom: 8px; font-size: 0.95rem; }
-    .briefing-text { color: var(--text-muted); line-height: 1.6; font-size: 0.9rem; margin: 0; }
-
-    /* Action (Launch) */
-    .action-area { text-align: center; margin-bottom: 40px; }
-
-    .btn-launch {
-      display: flex; align-items: center; justify-content: center; gap: 12px;
-      background: var(--primary);
-      color: white;
-      padding: 16px;
-      width: 100%;
-      text-decoration: none;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 1rem;
-      letter-spacing: 0.5px;
-      transition: 0.2s;
-      box-shadow: 0 0 20px rgba(99, 102, 241, 0.25);
-      border: 1px solid rgba(255,255,255,0.1);
-      text-transform: uppercase;
-    }
-    .btn-launch:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
-      background: var(--primary-hover);
-    }
-
-    .launch-hint { margin-top: 12px; color: var(--text-muted); font-size: 0.8rem; opacity: 0.8; }
-
-    /* Validation Area */
-    .validation-area {
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      position: relative;
-      margin-top: 10px;
-    }
-
-    .validation-label {
-      position: absolute; top: -10px; left: 15px;
-      background: var(--bg-panel); padding: 0 8px;
-      font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
-    }
-
-    .input-group {
-      display: flex;
-      gap: 12px;
-      margin-top: 5px;
-      align-items: center;
-    }
-
-    .prompt-sign { font-family: 'JetBrains Mono'; color: var(--success); font-weight: bold; font-size: 1.1rem; }
-
-    input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--text-main);
-      padding: 10px 0;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1rem;
-      width: 100%; /* Important pour mobile */
-    }
-    input:focus { outline: none; }
-    input::placeholder { color: rgba(255,255,255,0.15); font-family: 'Plus Jakarta Sans'; letter-spacing: normal; }
-
-    .btn-confirm {
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--success);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: 0.2s;
-      white-space: nowrap; /* Empêche le texte de passer à la ligne */
-    }
-    .btn-confirm:hover { background: var(--success); color: #000; }
-
-    /* --- 📱 MOBILE OPTIMIZATION --- */
-    @media (max-width: 500px) {
-      body { padding: 10px; align-items: flex-start; } /* Remonte le modal */
-
-      .mission-modal { margin-top: 20px; overflow-y: auto; max-height: 95vh; }
-
-      .modal-header { padding: 20px; }
-      .modal-content { padding: 20px; }
-
-      h1 { font-size: 1.3rem; }
-
-      /* FIX DU PROBLÈME DE DÉBORDEMENT */
-      .input-group {
-        flex-direction: column; /* Empile les éléments */
-        align-items: stretch; /* Étend sur la largeur */
-        gap: 15px;
-      }
-
-      .input-wrapper {
-        display: flex;
-        align-items: center;
-        border-bottom: 1px solid var(--border);
-        padding-bottom: 5px;
-      }
-
-      .btn-confirm {
-        width: 100%; /* Bouton pleine largeur */
-        padding: 14px;
-        text-align: center;
-        margin-top: 5px;
-      }
-
-      .prompt-sign { display: none; } /* On cache le $ sur mobile pour gagner de la place si besoin */
-    }
-
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-  </style>
+        .status-message {
+            margin-top: 15px; padding: 12px; border-radius: 8px; font-weight: 600;
+            text-align: center; display: none;
+        }
+        .status-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-error { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .status-solved { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.3); display: block; }
+    </style>
 </head>
 <body>
 
-<div class="mission-modal">
+<div class="page-wrapper">
 
-  <div class="modal-header">
-    <div class="mission-meta">
-      <div class="status-badge">
-        <div class="status-dot"></div> Mission Active
-      </div>
-      <h1 th:text="${challenge.title}">Injection SQL - Niveau 1</h1>
-    </div>
-    <a th:href="@{'/learn/' + ${challenge.category}}" class="close-btn">
-      <i class="fas fa-times"></i>
+    <a th:href="@{/learn/{category}(category=${challenge.category})}" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Retour à la sélection
     </a>
-  </div>
 
-  <div class="modal-content">
+    <div class="mission-container">
 
-    <div class="briefing-box">
-      <div class="briefing-title"><i class="fas fa-terminal" style="color:var(--primary);"></i> Briefing Tactique</div>
-      <p class="briefing-text" th:text="${challenge.description}">
-        Contournez le login administrateur de la banque cible pour exfiltrer le code secret.
-      </p>
-    </div>
-
-    <div class="action-area">
-      <a th:href="${challenge.targetUrl}" target="_blank" class="btn-launch">
-        <i class="fas fa-rocket"></i> DÉPLOYER LA CIBLE
-      </a>
-      <div class="launch-hint">
-        <i class="fas fa-info-circle"></i> Ouvre l'environnement cible dans un nouvel onglet
-      </div>
-    </div>
-
-    <div class="validation-area">
-      <div class="validation-label">VALIDATION DU FLAG</div>
-      <form action="/validate-flag" method="post" class="input-group">
-
-        <div class="input-wrapper" style="flex:1; display:flex; align-items:center;">
-          <span class="prompt-sign">$</span>
-          <input type="text" name="flagInput" placeholder="Ex: FLAG{SQL_MASTER}" autocomplete="off" required style="margin-left: 10px;">
+        <div class="mission-header">
+            <div class="mission-title">
+                <h1 th:text="${challenge.title}">Titre du Challenge</h1>
+                <div class="mission-difficulty"
+                     th:text="${challenge.difficulty} == 'deb' ? 'DÉBUTANT' : (${challenge.difficulty} == 'int' ? 'INTERMÉDIAIRE' : 'AVANCÉ')"
+                     th:classappend="${challenge.difficulty} == 'deb' ? 'diff-deb' : (${challenge.difficulty} == 'int' ? 'diff-int' : 'diff-avan')">
+                    Difficulté
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <i class="fas fa-bolt" style="color: #F59E0B;"></i>
+                <span th:text="${challenge.points}" style="font-size: 1.5rem; font-weight: 700; color: #F59E0B;">100</span> XP
+            </div>
         </div>
 
-        <button type="submit" class="btn-confirm">SOUMETTRE</button>
-      </form>
-    </div>
+        <div class="mission-body">
+            <h2><i class="fas fa-terminal" style="margin-right: 10px;"></i>Briefing de la Mission</h2>
 
-  </div>
+            <p th:text="${challenge.description}">
+                [Description du défi chargée dynamiquement]
+            </p>
+
+            <div style="margin-top: 25px; margin-bottom: 10px;" th:if="${challenge.targetUrl}">
+                <a th:href="${challenge.targetUrl}" target="_blank" rel="noopener noreferrer" class="btn-launch">
+                    <i class="fas fa-rocket"></i> LANCER LA MISSION
+                </a>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
+                    <i class="fas fa-info-circle"></i> Ouvre la cible dans un nouvel onglet.
+                </p>
+            </div>
+
+            <div th:unless="${challenge.targetUrl}" style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                <i class="fas fa-eye-slash" style="color: var(--text-muted);"></i>
+                <span style="color: var(--text-muted); margin-left: 8px;">Aucune cible directe. Utilisez les outils externes.</span>
+            </div>
+
+            <div th:if="${userSolved}" id="solvedMessage" class="status-message status-solved" style="margin-top: 20px;">
+                <i class="fas fa-check-circle"></i> <strong>DÉFI VALIDÉ</strong> — Vous avez déjà piraté ce système.
+            </div>
+        </div>
+
+        <div class="flag-validation">
+            <h3><i class="fas fa-flag" style="color: var(--text-muted); margin-right: 8px;"></i>Validation du Flag</h3>
+
+            <form id="flagForm" class="flag-form" method="post" th:action="@{/validate-flag}">
+                <input type="hidden" name="attId" th:value="${challenge.attId}" />
+
+                <input type="text"
+                       name="flagInput"
+                       id="flagInput"
+                       class="flag-input"
+                       placeholder="Coller le Flag ici (ex: HACKZONE{...})"
+                       required
+                       th:disabled="${userSolved}" />
+
+                <button type="submit" class="btn-validate"
+                        th:disabled="${userSolved}">
+                    <i class="fas fa-check"></i> VALIDER
+                </button>
+            </form>
+
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+    </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#flagForm').on('submit', function(e) {
+            e.preventDefault();
+
+            var form = $(this);
+            var url = form.attr('action');
+            var flag = $('#flagInput').val();
+            var attId = $('input[name="attId"]').val();
+
+            var statusDiv = $('#statusMessage');
+            statusDiv.hide().removeClass('status-success status-error');
+
+            $('#solvedMessage').hide();
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: {
+                    flagInput: flag,
+                    attId: attId
+                },
+                success: function(response) {
+                    if (response.success === true) {
+                        statusDiv.addClass('status-success').html('<i class="fas fa-trophy"></i> ' + response.message);
+                        statusDiv.fadeIn();
+                        $('#flagInput').prop('disabled', true);
+                        $('.btn-validate').prop('disabled', true).html('<i class="fas fa-check"></i> OK');
+                        setTimeout(function() {
+                            // Redirige vers la sélection, pas le dashboard
+                            window.location.href = "/learn/" + "[[${challenge.category}]]";
+                        }, 2000);
+                    } else {
+                        statusDiv.addClass('status-error').html('<i class="fas fa-times-circle"></i> ' + response.message);
+                        statusDiv.fadeIn();
+                        $('.flag-validation').addClass('shake');
+                        setTimeout(function(){ $('.flag-validation').removeClass('shake'); }, 500);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    statusDiv.addClass('status-error').text('Erreur technique : Impossible de joindre le serveur.');
+                    statusDiv.fadeIn();
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    @keyframes shake {
+        0% { transform: translate(1px, 1px) rotate(0deg); }
+        10% { transform: translate(-1px, -2px) rotate(-1deg); }
+        20% { transform: translate(-3px, 0px) rotate(1deg); }
+        30% { transform: translate(3px, 2px) rotate(0deg); }
+        40% { transform: translate(1px, -1px) rotate(1deg); }
+        50% { transform: translate(-1px, 2px) rotate(-1deg); }
+        60% { transform: translate(-3px, 1px) rotate(0deg); }
+        70% { transform: translate(3px, 1px) rotate(-1deg); }
+        80% { transform: translate(-1px, -1px) rotate(1deg); }
+        90% { transform: translate(1px, 2px) rotate(0deg); }
+        100% { transform: translate(1px, -2px) rotate(-1deg); }
+    }
+    .shake { animation: shake 0.5s; animation-iteration-count: 1; }
+</style>
 
 </body>
 </html>

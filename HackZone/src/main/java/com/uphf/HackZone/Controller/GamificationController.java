@@ -10,7 +10,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody; // INDISPENSABLE
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -26,11 +29,19 @@ public class GamificationController {
     }
 
     @PostMapping("/validate-flag")
-    public String validateFlag(@RequestParam String flagInput, org.springframework.ui.Model model) {
+    @ResponseBody // Renvoie du JSON au lieu d'une redirection HTML
+    public Map<String, Object> validateFlag(@RequestParam String flagInput, @RequestParam int attId) {
+
+        Map<String, Object> response = new HashMap<>();
+
         String userMail = SecurityContextHolder.getContext().getAuthentication().getName();
         Optional<UserEntity> userOpt = userRepository.findByUserMail(userMail);
 
-        if (userOpt.isEmpty()) return "redirect:/Auth/login";
+        if (userOpt.isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Erreur : Utilisateur non connecté.");
+            return response;
+        }
         UserEntity user = userOpt.get();
 
         Optional<AttackEntity> attackOpt = attackRepository.findByFlag(flagInput);
@@ -38,39 +49,51 @@ public class GamificationController {
         if (attackOpt.isPresent()) {
             AttackEntity attack = attackOpt.get();
 
-            if (solveRepository.existsByUserIdAndAttId(user.getUserId(), attack.getAttId())) {
-                return "redirect:/Home?error=Déja validé ! Petit malin...";
+            // Vérifie si le flag correspond bien au challenge actuel
+            if (attack.getAttId() != attId) {
+                response.put("success", false);
+                response.put("message", "Ce flag est valide... mais pour un autre challenge ! Bien essayé.");
+                return response;
             }
 
+            // Vérifie si déjà résolu
+            if (solveRepository.existsByUserIdAndAttId(user.getUserId(), attack.getAttId())) {
+                response.put("success", false);
+                response.put("message", "Déjà validé ! Petit malin...");
+                return response;
+            }
+
+            // Sauvegarde la résolution
             SolveEntity solveEntity = new SolveEntity(user.getUserId(), attack.getAttId());
             solveRepository.save(solveEntity);
 
+            // Ajoute les points
             int nouveauxPoints = user.getPoint() + attack.getPoints();
             user.setPoint(nouveauxPoints);
-
             updateLevel(user);
-
             userRepository.save(user);
 
-            return "redirect:/Home?success=Bravo ! Flag correct : + " + attack.getPoints() + " points";
+            response.put("success", true);
+            response.put("message", "MISSION ACCOMPLIE ! Flag correct : + " + attack.getPoints() + " XP");
+            return response;
+
         } else {
-            return "redirect:/Home?error=Flag incorrect. Essayer encore !";
+            response.put("success", false);
+            response.put("message", "ACCÈS REFUSÉ : Flag incorrect.");
+            return response;
         }
     }
 
-
-    //  c'est ici on gere les niveau
     private void updateLevel(UserEntity user) {
         int p = user.getPoint();
-
         if (p >= 1500) {
-            user.setLevel("avan"); // Avancé
+            user.setLevel("avan");
             user.setUserBadge("Master Hacker");
         } else if (p >= 500) {
-            user.setLevel("int"); // Intermédiaire
+            user.setLevel("int");
             user.setUserBadge("Script Kiddie");
         } else {
-            user.setLevel("deb"); // Débutant
+            user.setLevel("deb");
             user.setUserBadge("Novice");
         }
     }

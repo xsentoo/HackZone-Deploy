@@ -1,8 +1,16 @@
+-- ATTENTION : FICHIER MIS À JOUR AVEC LE DÉFI XSS
+-- Correction : Ajout de la table Comments et du Challenge XSS
+-- Il assure la cohérence des défis (SQL + XSS + OSINT + Brute Force + Network).
+
 -- ------------------------------------------------------------
 -- PARTIE 1 : TARGET APP (La Victime - Port 8081)
 -- ------------------------------------------------------------
 CREATE DATABASE IF NOT EXISTS TargetDB;
 USE TargetDB;
+
+-- FORCER L'ENCODAGE DE LA SESSION POUR LA BD VICTIME
+SET NAMES 'utf8mb4';
+SET CHARACTER SET utf8mb4;
 
 -- Table Users vulnerable a l'injection SQL
 CREATE TABLE IF NOT EXISTS Users (
@@ -17,22 +25,9 @@ INSERT IGNORE INTO Users (username, password, secret_data) VALUES
 ('admin', 'admin123', 'FLAG{SQL_LEVEL_1_COMPLETED}'),
 ('client', '1234', 'Solde: 0 EUR');
 
--- --- AJOUT POUR LE NIVEAU 3 (XSS STOCKÉ - ISOLÉ) ---
-
--- On supprime l'ancienne table pour ajouter la colonne session_id
-DROP TABLE IF EXISTS Comments;
-
-CREATE TABLE IF NOT EXISTS Comments (
-                                        id INT AUTO_INCREMENT PRIMARY KEY,
-                                        content TEXT,
-                                        session_id VARCHAR(255), -- ID de session pour l'isolation
-    author VARCHAR(50) DEFAULT 'Anonyme',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
 -- --- AJOUT POUR LE NIVEAU 2 (SQL UNION) ---
 
--- 1. Une table normale (Les Produits) - SANS ACCENTS
+-- 1. Une table normale (Les Produits)
 CREATE TABLE IF NOT EXISTS Products (
                                         id INT AUTO_INCREMENT PRIMARY KEY,
                                         name VARCHAR(100),
@@ -46,7 +41,7 @@ INSERT IGNORE INTO Products (name, category, price) VALUES
 ('Mug Developpeur', 'Accessoires', 12.50),
 ('Cle USB 64Go', 'Electronique', 15.00);
 
--- 2. Une table secrete (Le but du hack)
+-- 2. Une table secrete
 CREATE TABLE IF NOT EXISTS SecretConfig (
                                             id INT AUTO_INCREMENT PRIMARY KEY,
                                             config_name VARCHAR(50),
@@ -57,13 +52,28 @@ INSERT IGNORE INTO SecretConfig (config_name, config_value) VALUES
 ('admin_email', 'admin@bankofhack.com'),
 ('FLAG_LEVEL_2', 'FLAG{UNION_SELECT_IS_POWERFUL}');
 
+-- --- AJOUT POUR LE NIVEAU XSS (Guestbook) ---
+-- Table pour stocker les commentaires (et les scripts XSS)
+CREATE TABLE IF NOT EXISTS Comments (
+                                        id INT AUTO_INCREMENT PRIMARY KEY,
+                                        content TEXT,
+                                        session_id VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
 
 -- ------------------------------------------------------------
 -- PARTIE 2 : HACKZONE (Le QG - Port 8080)
 -- ------------------------------------------------------------
-CREATE DATABASE IF NOT EXISTS HackZone;
+-- CRÉATION BD AVEC ENCODAGE FORCÉ
+CREATE DATABASE IF NOT EXISTS HackZone CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE HackZone;
 
+-- FORCER L'ENCODAGE DE LA SESSION
+SET NAMES 'utf8mb4';
+SET CHARACTER SET utf8mb4;
+
+-- --- 1. CRÉATION DES TABLES ---
 -- Table 1 : Les Utilisateurs (Hackers)
 CREATE TABLE IF NOT EXISTS UserHack (
                                         userId INT AUTO_INCREMENT PRIMARY KEY,
@@ -99,20 +109,33 @@ CREATE TABLE IF NOT EXISTS Solves (
     CONSTRAINT fk_attack FOREIGN KEY (attId) REFERENCES Attacks(attId) ON DELETE CASCADE
     );
 
--- Insertion des Challenges
+-- --- 2. NETTOYAGE DES ANCIENNES DONNÉES ---
+DELETE FROM Solves WHERE solveId > 0;
+ALTER TABLE Solves AUTO_INCREMENT = 1;
+
+DELETE FROM Attacks WHERE attId > 0;
+ALTER TABLE Attacks AUTO_INCREMENT = 1;
+
+-- Définition du message d'avertissement
+SET @WARNING_MSG = ' ATTENTION : L''utilisation illégale de ces techniques sur des systèmes non autorisés est punie par la loi. Vous êtes responsable de vos actes.';
+
+
+-- --- 3. INSERTION DES DONNÉES ---
+
+-- Insertion des Challenges SQL & XSS
 INSERT IGNORE INTO Attacks (title, description, category, difficulty, target_url, flag, points) VALUES
 (
-    'Injection SQL - Niveau 1',
-    'Contournez le login administrateur de la banque cible pour exfiltrer le code secret.',
+    'Injection SQL - Niveau 1 (Login Bypass)',
+    'Contournez l''authentification de la page de connexion pour obtenir le Flag de l''administrateur. (Hint: Utiliser OR)',
     'SQL',
     'deb',
-    'http://localhost:8081/',
+    'http://localhost:8081/login',
     'FLAG{SQL_LEVEL_1_COMPLETED}',
     50
 ),
 (
-    'Injection SQL - Niveau 2',
-    'La boutique filtre mal les categories. Utilisez UNION SELECT pour voler les donnees de la table SecretConfig.',
+    'Injection SQL - Niveau 2 (Union Select)',
+    'La boutique filtre mal les catégories. Utilisez UNION SELECT pour voler les données de la table SecretConfig.',
     'SQL',
     'int',
     'http://localhost:8081/shop',
@@ -120,13 +143,157 @@ INSERT IGNORE INTO Attacks (title, description, category, difficulty, target_url
     100
 ),
 (
-    'Faille XSS - Vol de Cookie',
-    'Le Livre d''Or n''est pas sécurisé. L''administrateur a caché un secret dans ses cookies. Trouvez un moyen de l''afficher (alert document.cookie).',
+    'XSS - Niveau 1 (Stored XSS)',
+    'Injectez un script JavaScript dans le Livre d''Or pour voler le cookie de session contenant le Flag. (Hint: <script>...)',
     'XSS',
-    'deb',
+    'int',
     'http://localhost:8081/guestbook',
     'FLAG{XSS_MASTER_ALERT}',
+    150
+);
+
+-- Insertion des 15 Challenges de VOTRE PARTIE (OSINT, BRUTE FORCE, NETWORK)
+INSERT IGNORE INTO Attacks (title, description, category, difficulty, target_url, flag, points) VALUES
+
+-- --- CATÉGORIE 1 : OSINT (5 Défis) ---
+(
+    'OSINT - Niveau 1 (Google Dorking)',
+    CONCAT('Utilisez Google pour trouver un fichier backup exposé sur le site cible. Indice : site:cible.com filetype:sql', @WARNING_MSG),
+    'OSINT',
+    'deb',
+    'https://www.google.com',
+    'HACKZONE{g00gl3_d0rk1ng_b4s1c}',
     100
+),
+(
+    'OSINT - Niveau 2 (Email Hunter)',
+    CONCAT('Trouvez l''adresse email du CEO de l''entreprise fictive TechSecure Corp. Indice : Cherchez sur LinkedIn ou le site officiel.', @WARNING_MSG),
+    'OSINT',
+    'deb',
+    'https://www.linkedin.com',
+    'HACKZONE{c3o@t3chsecur3.com}',
+    150
+),
+(
+    'OSINT - Niveau 3 (Subdomain Discovery)',
+    CONCAT('Trouvez 3 sous-domaines cachés de target-company.com. Outils suggérés : crt.sh ou subfinder.', @WARNING_MSG),
+    'OSINT',
+    'int',
+    'https://crt.sh',
+    'HACKZONE{admin.target-company.com}',
+    200
+),
+(
+    'OSINT - Niveau 4 (Shodan Master)',
+    CONCAT('Utilisez Shodan pour trouver des caméras IP non sécurisées dans une ville donnée. Requête : port:554 country:"FR" city:"Paris".', @WARNING_MSG),
+    'OSINT',
+    'int',
+    'https://www.shodan.io',
+    'HACKZONE{sh0d4n_1s_p0w3rful}',
+    250
+),
+(
+    'OSINT - Niveau 5 (The Full Recon)',
+    CONCAT('Réalisez une reconnaissance complète de mega-corp.com : version du serveur, technologies, ports ouverts.', @WARNING_MSG),
+    'OSINT',
+    'avan',
+    'https://builtwith.com',
+    'HACKZONE{full_r3c0n_m4st3r_2024}',
+    300
+),
+
+-- --- CATÉGORIE 2 : BRUTE FORCE (5 Défis) ---
+(
+    'Brute Force - Niveau 1 (Weak Password)',
+    CONCAT('Un compte admin utilise un mot de passe dans le top 100. Login : admin. Hash MD5 : 5f4dcc3b5aa765d61d8327deb882cf99.', @WARNING_MSG),
+    'BRUTE_FORCE',
+    'deb',
+    'http://localhost:8081/login',
+    'HACKZONE{adm1n_p4ssw0rd_w34k}',
+    100
+),
+(
+    'Brute Force - Niveau 2 (Hash Cracker)',
+    CONCAT('Crackez ce hash MD5 : 098f6bcd4621d373cade4e832627b4f6. Wordlist : rockyou.txt', @WARNING_MSG),
+    'BRUTE_FORCE',
+    'deb',
+    'https://crackstation.net',
+    'HACKZONE{h4sh_cr4ck3d_md5}',
+    150
+),
+(
+    'Brute Force - Niveau 3 (SSH Bruteforce)',
+    CONCAT('Serveur SSH mal configuré. Cible : **localhost:2222**, User : root. Utilisez Hydra avec common_passwords.txt. Mot de passe : **root**.', @WARNING_MSG),
+    'BRUTE_FORCE',
+    'int',
+    'http://localhost:8081/ssh-challenge',
+    'HACKZONE{ssh_brut3f0rc3_succ3ss}',
+    200
+),
+(
+    'Brute Force - Niveau 4 (ZIP Password Recovery)',
+    CONCAT('Une archive ZIP protégée contient un document secret. Utilisez fcrackzip ou John the Ripper.', @WARNING_MSG),
+    'BRUTE_FORCE',
+    'int',
+    'http://localhost:8081/download/secret_docs.zip',
+    'HACKZONE{z1p_p4ssw0rd_r3c0v3r3d}',
+    250
+),
+(
+    'Brute Force - Niveau 5 (Rainbow Table Attack)',
+    CONCAT('Utilisez des rainbow tables pour craquer rapidement des hashes SHA-1.', @WARNING_MSG),
+    'BRUTE_FORCE',
+    'avan',
+    'https://crackstation.net',
+    'HACKZONE{r41nb0w_t4bl3_4tt4ck}',
+    300
+),
+
+-- --- CATÉGORIE 3 : NETWORK ANALYSIS (5 Défis) ---
+(
+    'Analyse Réseau - Niveau 1 (Packet Sniffer)',
+    CONCAT('Capturez le trafic HTTP et trouvez le mot de passe envoyé en clair. Fichier : traffic.pcap.', @WARNING_MSG),
+    'NETWORK_ANALYSIS',
+    'deb',
+    'http://localhost:8081/download/traffic.pcap',
+    'HACKZONE{p4ck3t_sn1ff3d_http}',
+    100
+),
+(
+    'Analyse Réseau - Niveau 2 (FTP Credentials)',
+    CONCAT('Un utilisateur s''est connecté à un serveur FTP. Trouvez ses identifiants dans ftp_capture.pcap. Filtre : ftp.', @WARNING_MSG),
+    'NETWORK_ANALYSIS',
+    'deb',
+    'http://localhost:8081/download/ftp_capture.pcap',
+    'HACKZONE{ftp_us3r:ftp_p4ss}',
+    150
+),
+(
+    'Analyse Réseau - Niveau 3 (ARP Spoofing Detection)',
+    CONCAT('Analysez le trafic réseau et détectez une attaque ARP Spoofing dans arp_attack.pcap.', @WARNING_MSG),
+    'NETWORK_ANALYSIS',
+    'int',
+    'http://localhost:8081/download/arp_attack.pcap',
+    'HACKZONE{4rp_sp00f1ng_d3t3ct3d}',
+    200
+),
+(
+    'Analyse Réseau - Niveau 4 (DNS Tunneling)',
+    CONCAT('Des données sont exfiltrées via des requêtes DNS. Décodez le message caché dans dns_exfil.pcap.', @WARNING_MSG),
+    'NETWORK_ANALYSIS',
+    'int',
+    'http://localhost:8081/download/dns_exfil.pcap',
+    'HACKZONE{dns_tunn3l1ng_3xf1l}',
+    250
+),
+(
+    'Analyse Réseau - Niveau 5 (SSL/TLS Decryption)',
+    CONCAT('Déchiffrez le trafic HTTPS capturé avec la clé privée fournie. Fichiers : encrypted_traffic.pcap et server.key.', @WARNING_MSG),
+    'NETWORK_ANALYSIS',
+    'avan',
+    'http://localhost:8081/download/encrypted_traffic.pcap',
+    'HACKZONE{ssl_d3crypt3d_m4st3r}',
+    300
 );
 
 -- ------------------------------------------------------------

@@ -1,5 +1,7 @@
 /Users/senthoo/Desktop/HackZone-Global/HackZone/src/main/java/com/uphf/HackZone/Component/JwtFilter.java
 /Users/senthoo/Desktop/HackZone-Global/HackZone/src/main/java/com/uphf/HackZone/Component/JwtUtil.java
+/Users/senthoo/Desktop/HackZone-Global/HackZone/src/main/java/com/uphf/HackZone/Config/SwaggerConfig.java
+/Users/senthoo/Desktop/HackZone-Global/HackZone/src/main/java/com/uphf/HackZone/Controller/AttackController.java
 /Users/senthoo/Desktop/HackZone-Global/HackZone/src/main/java/com/uphf/HackZone/Controller/AuthController.java
 /Users/senthoo/Desktop/HackZone-Global/HackZone/src/main/java/com/uphf/HackZone/Controller/GamificationController.java
 /Users/senthoo/Desktop/HackZone-Global/HackZone/src/main/java/com/uphf/HackZone/Controller/HomeController.java
@@ -13,3 +15,4 @@
 /Users/senthoo/Desktop/HackZone-Global/HackZone/src/main/java/com/uphf/HackZone/Repository/SolveRepository.java
 /Users/senthoo/Desktop/HackZone-Global/HackZone/src/main/java/com/uphf/HackZone/Repository/UserRepository.java
 /Users/senthoo/Desktop/HackZone-Global/HackZone/src/main/java/com/uphf/HackZone/Security/SecurityConfig.java
+/Users/senthoo/Desktop/HackZone-Global/HackZone/src/main/java/com/uphf/HackZone/Service/ChallengeService.java

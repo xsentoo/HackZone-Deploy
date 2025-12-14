@@ -19,7 +19,7 @@ public class AttackEntity {
     private String difficulty;
 
     @Column(name = "target_url")
-    private String targetUrl;
+    private String targetUrl; // Nom Java correct
 
     private String flag;
     private int points;

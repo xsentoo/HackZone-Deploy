@@ -1,19 +1,25 @@
 version: '3.8'
 
 services:
-  # --- 1. Le MySQL ---
+  # --- 1. La Base de Données ---
   mysqldb:
     image: mysql:8.0
     container_name: hackzone-mysql-docker
     ports:
-      - "3307:3306"
+      - "3308:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - mysql_data_docker:/var/lib/mysql
     networks:
-      - hackzone-net  # <--- On l'ajoute au réseau
+      - hackzone-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=root"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # --- 2. HackZone ---
   hackzone:
@@ -21,29 +27,35 @@ services:
     container_name: hackzone-app
     ports:
       - "8080:8080"
-    depends_on:
-      - mysqldb
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/HackZone?allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/HackZone?allowPublicKeyRetrieval=true&useSSL=false&useUnicode=true&characterEncoding=UTF-8
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
     networks:
-      - hackzone-net  # <--- On l'ajoute au réseau
+      - hackzone-net
+    depends_on:
+      mysqldb:
+        condition: service_healthy
 
-  # --- 3. TargetApp ---
+  # --- 3. TargetApp (CORRIGÉ AVEC VARIABLES D'ENVIRONNEMENT) ---
   targetapp:
     build: ./TargetApp
     container_name: target-app
     ports:
       - "8081:8081"
-    depends_on:
-      - mysqldb
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/TargetDB?allowPublicKeyRetrieval=true&useSSL=false
+      # C'est ici que la magie opère pour ton code Java :
+      - DB_HOST=mysqldb
+      - DB_PORT=3306
+      # ----------------------------------------------------
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/TargetDB?allowPublicKeyRetrieval=true&useSSL=false&useUnicode=true&characterEncoding=UTF-8
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
     networks:
-      - hackzone-net  # <--- On l'ajoute au réseau
+      - hackzone-net
+    depends_on:
+      mysqldb:
+        condition: service_healthy
 
   # --- 4. PhpMyAdmin ---
   phpmyadmin:
@@ -55,15 +67,26 @@ services:
       PMA_HOST: mysqldb
       MYSQL_ROOT_PASSWORD: root
     depends_on:
-      - mysqldb
+      mysqldb:
+        condition: service_healthy
     networks:
-      - hackzone-net  # <--- On l'ajoute au réseau
+      - hackzone-net
 
-# Définition des volumes
+  # --- 5. Serveur SSH ---
+  ssh-target:
+    image: rastasheep/ubuntu-sshd
+    container_name: ssh-target
+    restart: always
+    ports:
+      - "2222:22"
+    environment:
+      - SSH_USERS=root:root
+    networks:
+      - hackzone-net
+
 volumes:
   mysql_data_docker:
 
-# --- NOUVEAU : Définition du réseau ---
 networks:
   hackzone-net:
     driver: bridge

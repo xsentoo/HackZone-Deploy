@@ -2,36 +2,256 @@
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Inscription | HackZone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Initialisation Compte | HackZone</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
   <style>
-    body { font-family: Arial, sans-serif; background: #0d1117; color: #c9d1d9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .login-container { background: #161b22; padding: 30px; border-radius: 10px; width: 350px; text-align: center; box-shadow: 0 0 10px #000; }
-    h2 { margin-bottom: 20px; color: #58a6ff; }
-    input { width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 5px; background: #0d1117; color: #c9d1d9; box-sizing: border-box; }
-    button { width: 100%; padding: 10px; background: #238636; border: none; border-radius: 5px; color: white; cursor: pointer; margin-top: 10px; }
-    button:hover { background: #2ea043; }
-    .error { color: #ff6b6b; margin-top: 10px; }
-    a { color: #58a6ff; text-decoration: none; font-size: 0.9em; }
+    :root {
+      --bg-dark: #0B0F19;
+      --bg-panel: #151A29;
+      --primary: #6366F1;
+      --success: #6366f1;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      margin: 0;
+      height: 100vh;
+      display: flex; /* Layout Flexbox pour le Split Screen */
+      overflow: hidden; /* Empêche le scroll global */
+    }
+
+    /* --- PARTIE GAUCHE (INFO & LOGO) --- */
+    .left-panel {
+      flex: 1; /* Prend 50% de la largeur */
+      background: linear-gradient(135deg, #1e1b4b 0%, #0B0F19 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Effet de fond tech */
+    .left-panel::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background-image: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 40%);
+      z-index: 0;
+    }
+
+    .brand-content {
+      z-index: 1;
+      max-width: 500px;
+    }
+
+    .logo-large {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: white;
+      display: flex; align-items: center; gap: 15px;
+    }
+    .logo-large i { color: var(--primary); }
+
+    .headline {
+      font-size: 1.5rem;
+      line-height: 1.4;
+      margin-bottom: 40px;
+      color: #cbd5e1;
+    }
+
+    .features-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .features-list li {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      font-size: 1.1rem;
+      color: var(--text-muted);
+    }
+
+    .features-list li i {
+      width: 40px;
+      height: 40px;
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+      border-radius: 8px;
+      display: flex; justify-content: center; align-items: center;
+      margin-right: 15px;
+      font-size: 1.2rem;
+    }
+
+    /* --- PARTIE DROITE (FORMULAIRE) --- */
+    .right-panel {
+      flex: 1; /* Prend 50% de la largeur */
+      background: var(--bg-dark);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      position: relative;
+    }
+
+    .auth-box {
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+    }
+
+    .auth-box h2 {
+      font-size: 2rem;
+      margin-bottom: 30px;
+      font-weight: 700;
+    }
+
+    .form-group { margin-bottom: 25px; }
+
+    label {
+      display: block; font-size: 0.9rem; color: var(--text-muted);
+      margin-bottom: 8px; font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: white;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1rem;
+      transition: 0.3s;
+      box-sizing: border-box;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #1e2436;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+      background: #4F46E5;
+      transform: translateY(-2px);
+    }
+
+    .switch-link {
+      margin-top: 30px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .switch-link a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .switch-link a:hover { text-decoration: underline; }
+
+    /* Mobile Responsive */
+    @media (max-width: 900px) {
+      body { flex-direction: column; overflow-y: auto; }
+      .left-panel { padding: 40px; flex: none; height: auto; }
+      .right-panel { padding: 40px 20px; flex: none; height: auto; }
+      .logo-large { font-size: 2rem; }
+      .headline { font-size: 1.2rem; }
+    }
   </style>
 </head>
 <body>
 
-<div class="login-container">
-  <h2>Rejoindre HackZone</h2>
+<div class="left-panel">
+  <div class="brand-content">
+    <div class="logo-large">
+      <i class="fas fa-cube"></i> HACKZONE
+    </div>
+    <p class="headline">
+      Rejoignez la plateforme d'entraînement cybersécurité la plus immersive.
+    </p>
 
-  <form action="/Auth/register" method="post">
-    <input type="text" name="userName" placeholder="Nom d'utilisateur" required>
+    <ul class="features-list">
+      <li>
+        <i class="fas fa-flag"></i>
+        <span>Accès illimité aux CTF (Capture The Flag)</span>
+      </li>
+      <li>
+        <i class="fas fa-trophy"></i>
+        <span>Classement mondial en temps réel</span>
+      </li>
+      <li>
+        <i class="fas fa-terminal"></i>
+        <span>Outils de hacking exclusifs</span>
+      </li>
+      <li>
+        <i class="fas fa-user-secret"></i>
+        <span>Rejoignez une communauté d'élite</span>
+      </li>
+    </ul>
+  </div>
+</div>
 
-    <input type="email" name="userMail" placeholder="Email" required>
+<div class="right-panel">
+  <div class="auth-box">
+    <h2>Créer un compte</h2>
 
-    <input type="password" name="userPWD" placeholder="Mot de passe" required>
+    <div th:if="${error}" style="background: rgba(239,68,68,0.1); color: #EF4444; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(239,68,68,0.2);">
+      <i class="fas fa-exclamation-triangle"></i> <span th:text="${error}"></span>
+    </div>
 
-    <button type="submit">S'inscrire</button>
-  </form>
+    <form action="/Auth/register" method="post">
+      <div class="form-group">
+        <label>Nom de code (Pseudo)</label>
+        <input type="text" name="userName" placeholder="Ex: Neo" required>
+      </div>
 
-  <p class="error" th:text="${error}"></p>
+      <div class="form-group">
+        <label>Email professionnel</label>
+        <input type="email" name="userMail" placeholder="hacker@exemple.com" required>
+      </div>
 
-  <p>Déjà un compte ? <a href="/Auth/login">Se connecter</a></p>
+      <div class="form-group">
+        <label>Mot de passe sécurisé</label>
+        <input type="password" name="userPWD" placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" class="btn-submit">INITIALISER L'ACCÈS <i class="fas fa-arrow-right" style="margin-left:8px"></i></button>
+    </form>
+
+    <div class="switch-link">
+      Déjà membre ? <a href="/Auth/login">Se connecter</a>
+    </div>
+  </div>
 </div>
 
 </body>

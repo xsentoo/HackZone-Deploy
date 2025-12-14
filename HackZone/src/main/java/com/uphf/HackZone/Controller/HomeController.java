@@ -2,6 +2,7 @@ package com.uphf.HackZone.Controller;
 
 import com.uphf.HackZone.Entity.UserEntity;
 import com.uphf.HackZone.Repository.UserRepository;
+import com.uphf.HackZone.Service.ChallengeService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -15,10 +16,20 @@ import java.util.Optional;
 public class HomeController {
 
     private final UserRepository userRepository;
+    private final ChallengeService challengeService;
 
-    public HomeController(UserRepository userRepository) {
+    public HomeController(UserRepository userRepository, ChallengeService challengeService) {
         this.userRepository = userRepository;
+        this.challengeService = challengeService;
     }
+
+    // --- AJOUT ICI : Redirection de la racine vers Register ---
+    @GetMapping("/")
+    public String root() {
+        // Redirige localhost:8080 vers localhost:8080/Auth/register
+        return "redirect:/Auth/register";
+    }
+    // ----------------------------------------------------------
 
     @GetMapping("/Home")
     public String home(Model model) {
@@ -29,16 +40,14 @@ public class HomeController {
         if (userOpt.isPresent()) {
             UserEntity user = userOpt.get();
 
-
             boolean hasChanged = checkLevelConsistency(user);
             if (hasChanged) {
-                userRepository.save(user); // On sauvegarde le nouveau niveau en BDD
+                userRepository.save(user);
             }
-            // --------------------------------------------------
 
             model.addAttribute("user", user);
+            model.addAttribute("allAttacks", challengeService.getAllChallenges());
 
-            // Calcul pour la barre de progression
             int score = user.getPoint();
             int nextLevelScore = 500;
 
@@ -57,7 +66,6 @@ public class HomeController {
             model.addAttribute("nextLevelScore", nextLevelScore);
             model.addAttribute("progressPercent", percent);
 
-            // Gestion du classement
             List<UserEntity> leaderboard = userRepository.findTop10ByOrderByPointDesc();
             if (leaderboard.size() > 5) {
                 leaderboard = leaderboard.subList(0, 5);
@@ -69,7 +77,6 @@ public class HomeController {
         return "redirect:/Auth/login";
     }
 
-    // --- Méthode utilitaire pour vérifier le niveau ---
     private boolean checkLevelConsistency(UserEntity user) {
         int p = user.getPoint();
         String currentLevel = user.getLevel();
@@ -87,28 +94,24 @@ public class HomeController {
             newBadge = "Novice";
         }
 
-
         if (!newLevel.equals(currentLevel)) {
             user.setLevel(newLevel);
             user.setUserBadge(newBadge);
             return true;
         }
-        return false; // Pas de changement
+        return false;
     }
+
     @GetMapping("/Leaderboard")
     public String showLeaderboardPage(Model model) {
-
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String userMail = auth.getName();
         userRepository.findByUserMail(userMail).ifPresent(u -> model.addAttribute("currentUser", u));
 
-
         List<UserEntity> allPlayers = userRepository.findAll(
                 org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "point")
         );
-
         model.addAttribute("leaderboard", allPlayers);
-
-        return "Leaderboard"; // Cela va ouvrir src/main/resources/templates/Leaderboard.html
+        return "Leaderboard";
     }
 }
