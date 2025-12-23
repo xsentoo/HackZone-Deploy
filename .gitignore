@@ -1,13 +1,7 @@
-# 1. Crée le fichier .gitignore
-touch .gitignore
-
-# 2. Ajoute les règles pour ignorer les fichiers inutiles (Java, Mac, IDE)
-echo "**/target/" >> .gitignore
-echo "**/*.jar" >> .gitignore
-echo "**/*.class" >> .gitignore
-echo ".DS_Store" >> .gitignore
-echo ".idea/" >> .gitignore
-echo "*.log" >> .gitignore
-
-# 3. Vérifie que le fichier a bien été créé (tu devrais voir le contenu s'afficher)
-cat .gitignore
+**/target/
+**/*.jar
+**/*.class
+.DS_Store
+.idea/
+*.log
+TargetApp/
